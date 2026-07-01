@@ -82,7 +82,7 @@ body{font-family:'Pretendard',system-ui,sans-serif;background:#F4F2ED;color:var(
 <div class="wrap">
 
   <header class="masthead">
-    <div class="brand"><span class="title">백업 카드 생성기</span><span class="tag">Log Generator</span></div>
+    <div class="brand"><span class="title">문단 카드</span><span class="tag">A4 Generator</span></div>
   </header>
 
   <section class="panel">
@@ -187,6 +187,7 @@ function applySize(){
   canvas.style.width=s.w+'px';
   canvas.style.height=s.h+'px';
   canvas.style.padding=s.padY+'px '+s.padX+'px';
+  canvas.style.alignItems=state.mode==='square'?'center':'flex-start';
   canvasWrap.style.aspectRatio=s.ratio;
   attrEl.style.left=s.padX+'px';
   attrEl.style.bottom=s.padY+'px';
