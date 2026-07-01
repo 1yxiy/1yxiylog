@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>문단 카드 생성기</title>
+<title>카드 생성기</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@200;300;400;500;700&family=Noto+Sans+KR:wght@200;300;400;500;700&family=Nanum+Myeongjo:wght@400;700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap">
 <style>
@@ -35,6 +35,242 @@ body{font-family:'Pretendard',system-ui,sans-serif;background:#F4F2ED;color:var(
 .f-pre{font-family:'Pretendard',sans-serif;}.f-noto{font-family:'Noto Sans KR',sans-serif;}
 .f-gowun{font-family:'Gowun Batang',serif;}.f-serif{font-family:'Noto Serif KR',serif;}
 .f-myeongjo{font-family:'Nanum Myeongjo',serif;}.f-dodum{font-family:'Gowun Dodum',sans-serif;}
+
+.seg{display:flex;gap:6px;}
+.seg button{flex:1;background:var(--field);border:1px solid var(--line);color:var(--muted);padding:9px;border-radius:9px;cursor:pointer;font-size:.82rem;transition:.15s;}
+.seg button:hover{color:var(--ink);border-color:var(--faint);}
+.seg button.on{color:var(--accent);border-color:var(--accent);background:var(--accent-soft);font-weight:600;}
+
+.row{display:flex;justify-content:space-between;align-items:center;}
+.row + .row{margin-top:13px;}
+.row .name{font-size:.86rem;}
+.stepper{display:flex;align-items:center;gap:8px;}
+.stepper button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--field);color:var(--muted);font-size:1.1rem;line-height:1;cursor:pointer;transition:.12s;display:flex;align-items:center;justify-content:center;}
+.stepper button:hover{background:var(--solid);color:var(--solid-text);border-color:var(--solid);}
+.val{min-width:54px;text-align:center;font-size:.86rem;font-weight:600;color:var(--accent);}
+.val .u{font-size:.66rem;color:var(--muted);margin-left:1px;}
+
+.editor{width:100%;background:var(--field);border:1px solid var(--line);border-radius:11px;padding:14px 16px;color:var(--ink);font-family:inherit;font-size:.94rem;min-height:180px;line-height:1.7;outline:none;white-space:pre-wrap;word-break:break-all;}
+.editor:focus{border-color:var(--accent);}
+.editor:empty:before{content:attr(data-ph);color:var(--faint);}
+.editor b,.editor strong{font-weight:900;}
+.hint-sm{font-size:.72rem;color:var(--muted);line-height:1.5;margin-top:10px;}
+
+.actions{display:flex;gap:10px;}
+.btn{padding:15px 10px;border-radius:13px;font-weight:700;font-size:.9rem;cursor:pointer;transition:.18s;font-family:inherit;border:none;}
+.btn-copy{flex:1;background:var(--field);color:var(--ink);border:1px solid var(--line);}
+.btn-copy:hover{border-color:var(--faint);}
+.btn-save{flex:1.6;background:var(--solid);color:var(--solid-text);}
+.btn-save:hover{transform:translateY(-2px);box-shadow:0 10px 22px -8px rgba(44,40,35,.45);}
+.btn:disabled{opacity:.6;cursor:default;transform:none;}
+
+.preview{flex:1 1 380px;min-width:0;max-width:500px;position:sticky;top:38px;display:flex;flex-direction:column;gap:14px;}
+.canvas-wrap{width:100%;aspect-ratio:210/297;position:relative;border-radius:6px;overflow:hidden;box-shadow:0 24px 60px -20px rgba(44,40,35,.35);}
+#canvas{width:1240px;height:1754px;position:absolute;top:0;left:0;transform-origin:top left;display:flex;align-items:flex-start;justify-content:center;padding:150px 110px;box-sizing:border-box;background:var(--page-bg);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+#quoteText{position:relative;font-family:'Pretendard',sans-serif;font-size:34px;line-height:1.9;letter-spacing:-0.5px;color:var(--page-text);text-align:left;word-break:break-all;white-space:pre-wrap;font-weight:300;width:100%;}
+#quoteText:empty:before{content:'입력한 문구가 여기에 표시됩니다';opacity:.4;}
+#quoteText b,#quoteText strong{font-weight:900;}
+#attr{position:absolute;left:90px;bottom:90px;font-family:'Pretendard',sans-serif;color:var(--page-text);opacity:.75;font-size:30px;letter-spacing:0.02em;font-weight:300;text-align:left;display:none;}
+#attr .t{display:block;font-size:1.15em;font-weight:600;}
+#attr .a{display:block;font-size:.85em;opacity:.85;margin-top:8px;}
+
+@media(max-width:880px){.wrap{padding:24px 16px 60px;gap:24px;}.preview{position:relative;top:0;order:-1;}.panel{max-width:none;}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="brand"><span class="title">백업 카드 생성기</span><span class="tag">Log Generator</span></div>
+  </header>
+
+  <section class="panel">
+
+    <div class="card">
+      <div class="lbl">카드 형태</div>
+      <div class="seg" id="segMode">
+        <button class="on" data-m="a4">A4 카드</button>
+        <button data-m="square">발췌 카드</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="lbl">굵기</div>
+      <div class="row">
+        <span class="name">글자 굵기</span>
+        <div class="seg" style="max-width:220px;" id="segWeight">
+          <button data-w="200">얇게</button>
+          <button class="on" data-w="300">보통</button>
+          <button data-w="400">굵게</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="lbl">세부 조정</div>
+      <div class="row"><span class="name">글자 크기</span><div class="stepper"><button onclick="adjust('fontSize',-1)">−</button><span class="val" id="v-fontSize">34<span class="u">px</span></span><button onclick="adjust('fontSize',1)">+</button></div></div>
+      <div class="row"><span class="name">줄 간격</span><div class="stepper"><button onclick="adjust('lineHeight',-0.05)">−</button><span class="val" id="v-lineHeight">1.90<span class="u">x</span></span><button onclick="adjust('lineHeight',0.05)">+</button></div></div>
+      <div class="row"><span class="name">자간</span><div class="stepper"><button onclick="adjust('letterSpacing',-0.2)">−</button><span class="val" id="v-letterSpacing">-0.5<span class="u">px</span></span><button onclick="adjust('letterSpacing',0.2)">+</button></div></div>
+    </div>
+
+    <div class="card">
+      <div class="lbl">본문</div>
+      <div class="editor" id="editor" contenteditable="true" data-ph="여기에 문단을 입력하세요.">예시 문장</div>
+      <div class="hint-sm">텍스트를 드래그해서 선택하면 자동으로 볼드 처리돼요. 볼드된 부분을 다시 드래그하면 해제돼요.</div>
+    </div>
+
+    <div class="card" id="attrCard" style="display:none;">
+      <div class="lbl">제목 · 작가 <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--faint);">발췌 카드 좌측 하단에 표시돼요</span></div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <input type="text" id="inTitle" placeholder="제목 · 작품명" style="width:100%;background:var(--field);border:1px solid var(--line);border-radius:11px;padding:12px 14px;color:var(--ink);font-family:inherit;font-size:.94rem;">
+        <input type="text" id="inAuthor" placeholder="작가 · 화자" style="width:100%;background:var(--field);border:1px solid var(--line);border-radius:11px;padding:12px 14px;color:var(--ink);font-family:inherit;font-size:.94rem;">
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-save" id="saveBtn" onclick="saveImg()" style="flex:1;">이미지 저장</button>
+    </div>
+  </section>
+
+  <section class="preview">
+    <div class="canvas-wrap">
+      <div id="canvas"><div id="quoteText"></div><div id="attr"></div></div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const SIZES={
+  a4:{w:1240,h:1754,padX:110,padY:150,ratio:'210/297'},
+  square:{w:1080,h:1080,padX:90,padY:90,ratio:'1/1'}
+};
+const state={mode:'a4',weight:300,fontSize:34,lineHeight:1.9,letterSpacing:-0.5};
+const editor=document.getElementById('editor');
+const quoteText=document.getElementById('quoteText');
+const attrEl=document.getElementById('attr');
+const canvas=document.getElementById('canvas');
+const canvasWrap=document.querySelector('.canvas-wrap');
+
+document.querySelectorAll('#segMode button').forEach(btn=>{
+  btn.onclick=()=>{
+    state.mode=btn.dataset.m;
+    document.querySelectorAll('#segMode button').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    document.getElementById('attrCard').style.display=state.mode==='square'?'block':'none';
+    applySize();
+  };
+});
+document.querySelectorAll('#segWeight button').forEach(btn=>{
+  btn.onclick=()=>{state.weight=+btn.dataset.w;document.querySelectorAll('#segWeight button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');applyStyle();};
+});
+document.getElementById('inTitle').addEventListener('input',renderAttr);
+document.getElementById('inAuthor').addEventListener('input',renderAttr);
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function renderAttr(){
+  const t=document.getElementById('inTitle').value.trim();
+  const a=document.getElementById('inAuthor').value.trim();
+  if(state.mode!=='square' || (!t && !a)){ attrEl.style.display='none'; attrEl.innerHTML=''; return; }
+  let h='';
+  if(t) h+='<span class="t">'+esc(t)+'</span>';
+  if(a) h+='<span class="a">'+esc(a)+'</span>';
+  attrEl.innerHTML=h;
+  attrEl.style.display='block';
+}
+
+function curSize(){ return SIZES[state.mode]; }
+
+function applySize(){
+  const s=curSize();
+  canvas.style.width=s.w+'px';
+  canvas.style.height=s.h+'px';
+  canvas.style.padding=s.padY+'px '+s.padX+'px';
+  canvasWrap.style.aspectRatio=s.ratio;
+  attrEl.style.left=s.padX+'px';
+  attrEl.style.bottom=s.padY+'px';
+  renderAttr();
+  scale();
+}
+
+function adjust(key,d){
+  let v=+(state[key]+d).toFixed(2);
+  const min={fontSize:12,lineHeight:1,letterSpacing:-5};
+  if(v<min[key])v=min[key];
+  state[key]=v;
+  const el=document.getElementById('v-'+key);
+  const u=key==='lineHeight'?'x':'px';
+  const disp=key==='letterSpacing'?v.toFixed(1):(key==='lineHeight'?v.toFixed(2):v);
+  el.innerHTML=disp+'<span class="u">'+u+'</span>';
+  applyStyle();
+}
+
+function applyStyle(){
+  quoteText.style.fontWeight=state.weight;
+  quoteText.style.fontSize=state.fontSize+'px';
+  quoteText.style.lineHeight=state.lineHeight;
+  quoteText.style.letterSpacing=state.letterSpacing+'px';
+}
+
+function sync(){ quoteText.innerHTML=editor.innerHTML; }
+editor.addEventListener('input',sync);
+
+// 붙여넣기 시 서식 없이 텍스트만 삽입
+editor.addEventListener('paste',function(e){
+  e.preventDefault();
+  const text=(e.clipboardData||window.clipboardData).getData('text/plain');
+  document.execCommand('insertText',false,text);
+});
+
+// 드래그 선택 -> 자동 볼드 토글
+editor.addEventListener('mouseup',handleSelect);
+editor.addEventListener('touchend',handleSelect);
+function handleSelect(){
+  setTimeout(()=>{
+    const sel=window.getSelection();
+    if(!sel || sel.isCollapsed || sel.toString().trim()==='') return;
+    try{ document.execCommand('bold'); }catch(e){}
+    sel.removeAllRanges();
+    sync();
+  },10);
+}
+
+function shot(){
+  const s=curSize();
+  return html2canvas(canvas,{
+    scale:1, useCORS:true, backgroundColor:null, width:s.w, height:s.h,
+    onclone:d=>{ d.getElementById('canvas').style.transform='scale(1)'; }
+  });
+}
+function saveImg(){
+  const b=document.getElementById('saveBtn'),o=b.textContent;
+  b.textContent='생성 중…';b.disabled=true;
+  shot().then(cv=>{
+    const a=document.createElement('a');
+    a.download=(state.mode==='square'?'excerpt_':'paragraph_')+Date.now()+'.png';
+    a.href=cv.toDataURL('image/png');
+    a.click();
+    b.textContent=o;b.disabled=false;
+  }).catch(()=>{alert('저장에 실패했어요. 다시 시도해 주세요.');b.textContent=o;b.disabled=false;});
+}
+function scale(){
+  const s=curSize();
+  if(canvasWrap&&canvas) canvas.style.transform='scale('+(canvasWrap.getBoundingClientRect().width/s.w)+')';
+}
+window.addEventListener('DOMContentLoaded',()=>{
+  if(canvasWrap) new ResizeObserver(scale).observe(canvasWrap);
+  scale();
+});
+window.addEventListener('load',scale);
+
+applySize();
+applyStyle();
+sync();
+scale();
+</script>
+</body>
+</html>.f-myeongjo{font-family:'Nanum Myeongjo',serif;}.f-dodum{font-family:'Gowun Dodum',sans-serif;}
 
 .seg{display:flex;gap:6px;}
 .seg button{flex:1;background:var(--field);border:1px solid var(--line);color:var(--muted);padding:9px;border-radius:9px;cursor:pointer;font-size:.82rem;transition:.15s;}
